@@ -73,7 +73,7 @@ BODY_25_LINES = [
     [11, 24],  # Right heel
     [0, 16, 18],  # Left eye
     [4, 3, 2, 1, 5, 6, 7],  # Arms
-    [8, 12, 13, 14, 18, 20],  # Left leg
+    [8, 12, 13, 14, 19, 20],  # Left leg
     [14, 21]  # Left heel
 ]
 
