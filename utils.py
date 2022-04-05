@@ -1,5 +1,8 @@
+from asyncore import read
+from errno import ENETDOWN
 import os 
-import json 
+import json
+from matplotlib.pyplot import axis 
 import numpy as np 
 from more_itertools.recipes import grouper, pairwise
 from consta import *
@@ -40,7 +43,7 @@ def convert_video(path):
         image_id = doc['image_id'].split(".")[0]
         doc_kpts = doc['keypoints']
         numarr = list(grouper(doc_kpts, 3))
-        template = {"version":1.3,"people":[{"person_id":[-1],"pose_keypoints_2d":[],"face_keypoints_2d":[],"hand_left_keypoints_2d":[],"hand_right_keypoints_2d":[],"pose_keypoints_3d":[],"face_keypoints_3d":[],"hand_left_keypoints_3d":[],"hand_right_keypoints_3d":[]}]}
+        template = {"version":1.3,"people":[{"person_id":[-1],"pose_keypoints_2d":[],"face_keypoints_2d":[],"hand_left_keypoints_2d":[],"hand_right_keypoints_2d":[],"pose_keypoints_3d":[],"face_keypoints_3d":[],"hand_left_keypoints_3d":[],"hand_right_keypoints_3d":[], "box":[]}]}
 
         # original format https://github.com/Fang-Haoshu/Halpe-FullBody 
         # idx is open, value is halpe
@@ -96,8 +99,9 @@ def convert_video(path):
                 subnumarr[other_idx] = numarr[right_halpe2open[other_idx]]
         converted['people'][0]['hand_right_keypoints_2d'] = [round(y,9) for x in subnumarr for y in x]
 
+        converted['people'][0]['box'] = doc['box']
 
-        with open(outdir/f"{image_id}.json", 'w') as f: 
+        with open(outdir/f"{int(image_id):012d}_keypoints.json", 'w') as f: 
             json.dump(converted, f)
 
     print()
@@ -273,3 +277,79 @@ def clone_frames(total, vidp):
         if not os.path.exists(fn):
             clonable.write_to_png(fn)
     return cvidp
+
+import imageio
+
+def load_get_frames_from_folder(path):
+    pngs = sorted(list(path.glob("*.png")))
+    # frames = []
+    # for fn in tqdm(pngs):
+    #     image = imageio.imread(fn)
+    #     frames.append(image)
+    # return frames
+    return pngs 
+
+def load_get_frames_from_video(path):
+    pass 
+
+
+from skimage import img_as_ubyte
+import moviepy.editor as me
+def merge_horizontal_vid_frameslist(vidpath, framelist):
+    reader = imageio.get_reader(vidpath)
+    merge_frames = []
+    count = 0 
+    try:
+        for i,im in tqdm(enumerate(reader)):
+            left_frame = im 
+            right_frame = imageio.imread(framelist[i])
+            w, h = draw_text(left_frame, framelist[i].name, pos=(10, 10))
+            # print(left_frame)
+            merge = np.concatenate((left_frame, right_frame), axis=1)
+            merge_frames.append(img_as_ubyte(merge))
+            # imageio.imsave(folder/framelist[i].name, merge)
+            # break
+            # if count > 300:
+            #     break 
+            # count += 1
+    except:
+        pass
+    return merge_frames
+
+import cv2
+
+def draw_text(img, text,
+          font=cv2.FONT_HERSHEY_PLAIN,
+          pos=(0, 0),
+          font_scale=3,
+          font_thickness=2,
+          text_color=(0, 255, 0),
+          text_color_bg=(0, 0, 0)
+          ):
+
+    x, y = pos
+    text_size, _ = cv2.getTextSize(text, font, font_scale, font_thickness)
+    text_w, text_h = text_size
+    cv2.rectangle(img, pos, (x + text_w, y + text_h), text_color_bg, -1)
+    cv2.putText(img, text, (x, y + text_h + font_scale - 1), font, font_scale, text_color, font_thickness)
+
+    return text_size
+
+
+def add_audio_from_to(from_path, to_path):
+    audio = me.VideoFileClip(from_path).audio
+
+    video = me.VideoFileClip(to_path)
+    # os.system(f"rm {to_path}")
+    video = video.set_audio(audio)
+
+    out_path = Path(to_path)
+    parent_path = out_path.parent
+    name_path = "ad-" + out_path.name
+    out_path = str(parent_path.joinpath(name_path))
+    video.write_videofile(out_path)
+
+def save_video_from_frames(frames, folder, fname, fps=30):
+    imageio.mimsave(os.path.join(folder,f"{fname}.mp4"), frames,
+                    fps=fps) 
+    return os.path.join(folder,f"{fname}.mp4")

@@ -4,6 +4,8 @@ from more_itertools.recipes import grouper, pairwise
 from consta import *
 from pathlib import Path 
 import os 
+from tqdm import tqdm
+
 # filepath = Path('AlphaPose_test/AlphaPose_test_dance1_posetrack.json')
 filepath = Path('AlphaPose_test/AlphaPose_BTSdynamite-cut_posetrack.json')
 outdir = Path('AlphaPose_test/converted')
@@ -33,11 +35,11 @@ for doc in docs:
     docsn.append(doc)
 
 # convert
-for doc in docsn:
+for doc in tqdm(docsn):
     image_id = doc['image_id'].split(".")[0]
     doc_kpts = doc['keypoints']
     numarr = list(grouper(doc_kpts, 3))
-    template = {"version":1.3,"people":[{"person_id":[-1],"pose_keypoints_2d":[],"face_keypoints_2d":[],"hand_left_keypoints_2d":[],"hand_right_keypoints_2d":[],"pose_keypoints_3d":[],"face_keypoints_3d":[],"hand_left_keypoints_3d":[],"hand_right_keypoints_3d":[]}]}
+    template = {"version":1.3,"people":[{"person_id":[-1],"pose_keypoints_2d":[],"face_keypoints_2d":[],"hand_left_keypoints_2d":[],"hand_right_keypoints_2d":[],"pose_keypoints_3d":[],"face_keypoints_3d":[],"hand_left_keypoints_3d":[],"hand_right_keypoints_3d":[], "box":[]}]}
 
     # original format https://github.com/Fang-Haoshu/Halpe-FullBody 
     # idx is open, value is halpe
@@ -93,7 +95,9 @@ for doc in docsn:
             subnumarr[other_idx] = numarr[right_halpe2open[other_idx]]
     converted['people'][0]['hand_right_keypoints_2d'] = [round(y,9) for x in subnumarr for y in x]
 
+    converted['people'][0]['box'] = doc['box']
 
-    with open(outdir/f"{image_id}.json", 'w') as f: 
+    with open(outdir/f"{int(image_id):012d}_keypoints.json", 'w') as f: 
         json.dump(converted, f)
+    
     # break

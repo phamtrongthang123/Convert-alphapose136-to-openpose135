@@ -1,2 +1,4 @@
 gizeh
 opencv-python
+imageio_ffmpeg
+moviepy
