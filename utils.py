@@ -101,7 +101,7 @@ def convert_video(path):
 
         converted['people'][0]['box'] = doc['box']
 
-        with open(outdir/f"{int(image_id):012d}_keypoints.json", 'w') as f: 
+        with open(outdir/f"{image_id}.json", 'w') as f: 
             json.dump(converted, f)
 
     print()
@@ -233,7 +233,7 @@ def vis_video(filepath):
     return outroot
 
 def getfps(filepath):
-    vcap = cv2.VideoCapture(str(list(Path(filepath).glob('*.mp4'))[0]))
+    vcap = cv2.VideoCapture(str(filepath))
     fps = vcap.get(cv2.CAP_PROP_FPS)
     return fps 
 
@@ -242,8 +242,8 @@ def make_video(filepath, fps):
     return f"{filepath}/vis.mp4"
 
 def merge_vid(merge_root, original_vid, output_video):
-    vido = str(list(Path(original_vid).glob('*.mp4'))[0])
-    os.system(f"ffmpeg -y -i \"{vido}\" -i \"{output_video}\" -filter_complex hstack=inputs=2 \"{merge_root}/{Path(original_vid).name}.mp4\"")
+    vido = str(original_vid)
+    os.system(f"ffmpeg -y -i \"{vido}\" -i \"{output_video}\" -filter_complex hstack=inputs=2 \"{merge_root}/{Path(original_vid).name}\"")
     
 
 def check_correct_pipeline(vids):
@@ -350,6 +350,7 @@ def add_audio_from_to(from_path, to_path):
     video.write_videofile(out_path)
 
 def save_video_from_frames(frames, folder, fname, fps=30):
+    os.makedirs(folder, exist_ok=True)
     imageio.mimsave(os.path.join(folder,f"{fname}.mp4"), frames,
                     fps=fps) 
     return os.path.join(folder,f"{fname}.mp4")

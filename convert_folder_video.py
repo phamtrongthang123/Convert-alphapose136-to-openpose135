@@ -1,17 +1,20 @@
 from pathlib import Path 
 from utils import *
 originalpath = Path("raw_vids")
-vidpath = Path("alphapose_raw_vids/outputs")
+vidpath = Path("first_delivery_batch2")
 original_vids = sorted(list(originalpath.glob("*")))
 vids = sorted(list(vidpath.glob("*")))
 zvids = zip(original_vids, vids)
 for vid in tqdm(zvids):
     original_vid, vidp = vid
+    original_vid = originalpath/f"{vidp.name}.mp4"
+    # print(original_vid, vidp)
     # if "5UxIclVZdk0" != vidp.name:
     #     continue
     output_path = convert_video(str(vidp))
     output_path = vis_video(vidp)
-    ori_vid_p = get_video(original_vid)
+    # ori_vid_p = get_video(original_vid)
+    ori_vid_p = str(original_vid)
     totalframes = get_frames_from_video(ori_vid_p)
     num_output_frames = get_frames_from_folder(vidp/"converted_vis")
     # print(totalframes, num_output_frames)

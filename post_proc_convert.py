@@ -10,8 +10,6 @@ check_correct_pipeline(vids)
 zvids = zip(original_vids, vids)
 for vid in tqdm(zvids):
     original_vid, vidp = vid
-    if '_9FTgVluKuw' != vidp.name:
-        continue
     ori_vid_p = get_video(original_vid)
     totalframes = get_frames_from_video(ori_vid_p)
     num_output_frames = get_frames_from_folder(vidp/"converted_vis")

@@ -2,3 +2,6 @@
 __pycache__/
 alphapose_*
 raw_vids*
+old*
+first_delivery_*
+*.zip 
